@@ -3,7 +3,7 @@
 use amethyst::ecs::resources::InputHandler;
 use specs::{Entities, Fetch, FetchMut, Join, System, ReadStorage, WriteStorage};
 
-use components::{Direction, Grid, Parent, Tile, Type, Snake, Tick};
+use components::{Controls, Direction, Grid, Parent, Tile, Type, Snake, Tick};
 
 #[derive(Default)]
 pub struct ControllerSystem;
@@ -21,22 +21,23 @@ impl<'a> System<'a> for ControllerSystem {
         WriteStorage<'a, Direction>,
         ReadStorage<'a, Type>,
         ReadStorage<'a, Parent>,
+        ReadStorage<'a, Controls>,
     );
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, input, tick, mut grid, mut tiles, mut snakes, mut directions, types, parents) = data;
+        let (entities, input, tick, mut grid, mut tiles, mut snakes, mut directions, types, parents, controls) = data;
 
-        for (direction, snake, tile) in (&mut directions, &mut snakes, &mut tiles).join() {
+        for (direction, snake, tile, controls) in (&mut directions, &mut snakes, &mut tiles, &controls).join() {
             // Figure out a valid direction for the snake.
             match (
-                input.action_down(0), // left 
-                input.action_down(1), // right
-                input.action_down(2), // up
-                input.action_down(3), // down
+                input.button_down(controls.left),
+                input.button_down(controls.right),
+                input.button_down(controls.up),
+                input.button_down(controls.down),
             ) {
-                (Some(true), _, _, _) if direction.direction.0 != 1 => snake.queued_direction = (-1, 0),
-                (_, Some(true), _, _) if direction.direction.0 != -1 => snake.queued_direction = (1, 0),
-                (_, _, Some(true), _) if direction.direction.1 != 1 => snake.queued_direction = (0, -1),
-                (_, _, _, Some(true)) if direction.direction.1 != -1 => snake.queued_direction = (0, 1),
+                (true, _, _, _) if direction.direction.0 != 1 => snake.queued_direction = (-1, 0),
+                (_, true, _, _) if direction.direction.0 != -1 => snake.queued_direction = (1, 0),
+                (_, _, true, _) if direction.direction.1 != 1 => snake.queued_direction = (0, -1),
+                (_, _, _, true) if direction.direction.1 != -1 => snake.queued_direction = (0, 1),
                 _ => { },
             }
 

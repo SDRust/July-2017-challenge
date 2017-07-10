@@ -70,6 +70,17 @@ impl Component for Direction {
     type Storage = DenseVecStorage<Self>;
 }
 
+// Controls for each snake.
+pub struct Controls {
+    pub left: Button,
+    pub right: Button,
+    pub up: Button,
+    pub down: Button,
+}
+impl Component for Controls {
+    type Storage = DenseVecStorage<Self>;
+}
+
 pub struct Snake {
     // Which direction the snake will go next tick.
     pub queued_direction: (i8, i8),

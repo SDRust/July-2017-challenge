@@ -42,6 +42,7 @@ fn main() {
     world.add_resource::<Grid>(Grid::new(GRID_X, GRID_Y));
 
     // Register component.
+    world.register::<Controls>();
     world.register::<Snake>();
     world.register::<Type>();
     world.register::<Parent>();

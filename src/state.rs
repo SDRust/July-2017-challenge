@@ -6,7 +6,7 @@ use amethyst::renderer::{VertexPosNormal, Pipeline};
 use amethyst::{Event, State, Trans, VirtualKeyCode, WindowEvent};
 use specs::{Entity, World};
 
-use components::{Direction, Extension, Tile, Snake, Type};
+use components::{Controls, Direction, Extension, Tile, Snake, Type};
 
 pub struct GameState;
 impl State for GameState {
@@ -73,42 +73,42 @@ impl State for GameState {
             .with(player1.clone())
             .with(LocalTransform::default())
             .with(Transform::default())
-            .with(Tile { x: 0, y: 0 })
+            .with(Tile { x: (::GRID_X / 2 - ::GRID_X / 4) as i32, y: ( 3 * ::GRID_Y / 4) as i32 })
             .with(Snake { 
-                queued_direction: (1, 0),
+                queued_direction: (0, -1),
                 length: 1,
                 end: None,
             })
             .with(Type::Kill)
             .with(Direction::default())
-            .with(Extension(5))
+            .with(Controls {
+                left: VirtualKeyCode::A.into(),
+                right: VirtualKeyCode::D.into(),
+                up: VirtualKeyCode::W.into(),
+                down: VirtualKeyCode::S.into(),
+            })
+            .with(Extension(5)) // Start the snake off with 6 pieces
             .build();
 
-        /*
         world.create_entity()
             .with(player2.clone())
             .with(LocalTransform::default())
             .with(Transform::default())
-            .with(Tile { x: 8, y: 0 })
+            .with(Tile { x: (::GRID_X / 2 + ::GRID_X / 4) as i32, y: ( 3 * ::GRID_Y / 4) as i32 })
             .with(Snake { 
-                queued_direction: (1, 0),
+                queued_direction: (0, -1),
                 length: 1,
                 end: None,
             })
             .with(Direction::default())
-            .with(Extension(5))
+            .with(Controls {
+                left: VirtualKeyCode::Left.into(),
+                right: VirtualKeyCode::Right.into(),
+                up: VirtualKeyCode::Up.into(),
+                down: VirtualKeyCode::Down.into(),
+            })
+            .with(Extension(5)) // Start the snake off with 6 pieces
             .build();
-        */
-
-        // Setup `InputHandler` axis.
-        {
-            let mut input = world.write_resource::<InputHandler>();
-            let (left, right, up, down) = (0, 1, 2, 3);
-            input.insert_action(left, Button::Key(VirtualKeyCode::A));
-            input.insert_action(up, Button::Key(VirtualKeyCode::W));
-            input.insert_action(right, Button::Key(VirtualKeyCode::D));
-            input.insert_action(down, Button::Key(VirtualKeyCode::S));
-        }
     }
 
     fn handle_events(&mut self,

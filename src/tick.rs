@@ -4,7 +4,7 @@ use specs::{Entities, Join, Fetch, FetchMut, System};
 
 use components::Tick;
 
-pub const TICK_RATE: u64 = 100_000_000 ; // 1/10th of a second
+pub const TICK_RATE: u64 = 133_333_333 ; // 1/7.5 of a second
 pub const TICKS_PER_SECOND: u64 = 1_000_000_000 / TICK_RATE;
 pub const FPS_SAMPLE: usize = 20;
 
@@ -57,7 +57,6 @@ impl<'a> System<'a> for TickSystem {
             if tick.ticks % (TICKS_PER_SECOND * 3) == 0 { // print out every 3 seconds
                 let samples = self.average_fps.iter().sum::<u64>() / FPS_SAMPLE as u64;
                 println!("FPS: {:.2}", 1_000_000f64 / samples as f64);
-                //println!("ENTITIES: {}", (&*entities).join().count());
             }
         }
         else {

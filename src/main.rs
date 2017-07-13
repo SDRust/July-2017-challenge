@@ -1,6 +1,7 @@
 
 extern crate amethyst;
 extern crate specs;
+extern crate rand;
 
 use amethyst::{Application, Event, State, Trans, VirtualKeyCode, WindowEvent};
 use amethyst::asset_manager::AssetManager;
@@ -28,9 +29,9 @@ mod controller;
 mod tick;
 mod extend;
 
-pub const TILE_SIZE: f32 = 50.0;
-pub const GRID_X: usize = 24; // 600 / 50
-pub const GRID_Y: usize = 24;
+pub const TILE_SIZE: f32 = 100.0;
+pub const GRID_X: usize = 12; // WINDOW_SIZE / (TILE_SIZE / 2)
+pub const GRID_Y: usize = 12;
 
 fn main() {
     let path = format!("{}/resources/config.yml", env!("CARGO_MANIFEST_DIR"));
@@ -52,11 +53,11 @@ fn main() {
 
     // Add systems that should be run in parallel.
     let mut dispatcher = DispatcherBuilder::new()
-        .add(TickSystem::default(), "ticks", &[])
+        .add(ControllerSystem::default(), "controller", &[])
+        .add(TickSystem::default(), "ticks", &["controller"])
         .add(TileSystem(0.0), "tiles", &[])
         .add(TransformSystem::new(), "transform", &["tiles"])
         .add(ExtendSystem::default(), "extend", &["tiles", "ticks"])
-        .add(ControllerSystem::default(), "controller", &["ticks"])
         .build();
 
     let mut game = Application::new(GameState, dispatcher, world, cfg);

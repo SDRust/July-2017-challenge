@@ -50,7 +50,6 @@ impl State for GameState {
         }
 
         // Add all resources
-        //world.add_resource::<Score>(Score::new());
         world.add_resource::<InputHandler>(InputHandler::new());
 
         // Generate a square mesh
@@ -60,6 +59,7 @@ impl State for GameState {
         // Textures
         assets.load_asset_from_data::<Texture, [f32; 4]>("white", [1.0, 1.0, 1.0, 1.0]);
         assets.load_asset_from_data::<Texture, [f32; 4]>("blue", [0.0, 0.0, 1.0, 1.0]);
+        assets.load_asset_from_data::<Texture, [f32; 4]>("red", [1.0, 0.0, 0.0, 1.0]);
 
         // Square vertices/mesh/polygon
         let square_verts = gen_rectangle(1.0, 1.0);
@@ -68,7 +68,7 @@ impl State for GameState {
         let player1 = assets.create_renderable("square", "white", "white", "white", 1.0).unwrap();
         let player2 = assets.create_renderable("square", "blue", "blue", "blue", 1.0).unwrap();
 
-        // Set up entities
+        // Set up snakes
         world.create_entity()
             .with(player1.clone())
             .with(LocalTransform::default())
@@ -87,9 +87,11 @@ impl State for GameState {
                 up: VirtualKeyCode::W.into(),
                 down: VirtualKeyCode::S.into(),
             })
-            .with(Extension(5)) // Start the snake off with 6 pieces
+            .with(Extension(6)) // Start the snake off with 7 pieces (head + 6 tail pieces)
             .build();
 
+        /*
+        // Extra snake if you want to add it.
         world.create_entity()
             .with(player2.clone())
             .with(LocalTransform::default())
@@ -100,6 +102,7 @@ impl State for GameState {
                 length: 1,
                 end: None,
             })
+            .with(Type::Kill)
             .with(Direction::default())
             .with(Controls {
                 left: VirtualKeyCode::Left.into(),
@@ -107,8 +110,9 @@ impl State for GameState {
                 up: VirtualKeyCode::Up.into(),
                 down: VirtualKeyCode::Down.into(),
             })
-            .with(Extension(5)) // Start the snake off with 6 pieces
+            .with(Extension(200)) // Start the snake off with 6 pieces
             .build();
+        */
     }
 
     fn handle_events(&mut self,
@@ -130,6 +134,38 @@ impl State for GameState {
             }
         }
 
+        Trans::None
+    }
+
+    fn update(&mut self, world: &mut World, assets: &mut AssetManager, _: &mut Pipeline) -> Trans {
+        use components::{Tick, Grid};
+
+        let ticks = world.read_resource::<Tick>().ticks.clone();
+        if ticks == 0 {
+
+            let pos = {
+                // TODO: Get a random empty position for the food.
+                Some((5, 5))
+            };
+
+
+            if let Some(position) = pos {
+                let food = assets.create_renderable("square", "red", "red", "red", 1.0).unwrap();
+
+                world.create_entity()
+                    .with(food)
+                    .with(LocalTransform::default())
+                    .with(Transform::default())
+                    .with(Direction {
+                        direction: (0, 0),
+                        previous: None,
+                    })
+                    .with(Tile { x: position.0 as i32, y: position.1 as i32 })
+                    .with(Type::Eat)
+                    .build();
+            }
+        }
+        
         Trans::None
     }
 }

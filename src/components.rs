@@ -1,8 +1,9 @@
 
-use std::collections::HashSet;
+use std::collections::HashMap;
 
 use specs::{Component, Entity, DenseVecStorage, NullStorage};
 use amethyst::ecs::resources::Button;
+use rand;
 
 #[derive(Debug, Default)]
 pub struct Tick {
@@ -13,20 +14,21 @@ pub struct Tick {
     pub ticked: bool,
 }
 
+// Grid of snake parts.
 pub struct Grid {
-    pub taken: HashSet<usize>,
     list: Vec<Option<Entity>>,
     len: (usize, usize),
 }
 impl Grid {
     pub fn new(x: usize, y: usize) -> Self {
-        let mut list = Vec::with_capacity(x * y);
-        for _ in 0..(x * y) {
+        let max = x + y * x;
+        let mut list = Vec::with_capacity(max);
+
+        for i in 0..max {
             list.push(None);
         }
         
         Grid {
-            taken: HashSet::new(),
             list: list,
             len: (x, y),
         }
@@ -36,9 +38,13 @@ impl Grid {
         x < self.len.0 && y < self.len.1
     }
 
+    fn index(&self, x: usize, y: usize) -> usize {
+        x + (y * self.len.0)
+    }
+
     pub fn get(&self, x: usize, y: usize) -> Option<Entity> {
         if self.bounds(x, y) {
-            self.list[x + (y * self.len.0)]
+            self.list[self.index(x, y)]
         }
         else {
             None
@@ -47,13 +53,25 @@ impl Grid {
 
     pub fn set(&mut self, x: usize, y: usize, element: Option<Entity>) {
         if self.bounds(x, y) {
-            self.list[x + (y * self.len.0)] = element;
+            let index = self.index(x, y);
+            self.list[index] = element;
+        }
+    }
+
+    pub fn print(&self) {
+        for x in 0..self.len.0 {
+            for y in 0..self.len.1 {
+                match self.get(x, y) {
+                    Some(_) => print!("1 "),
+                    None => print!("0 "),
+                }
+            }
+            println!();
         }
     }
 }
 
 #[derive(Clone, Debug)]
-//pub struct Direction(pub i8, pub i8);
 pub struct Direction {
     pub direction: (i8, i8),
     pub previous: Option<(i8, i8)>,
@@ -116,6 +134,7 @@ impl Component for Tile {
     type Storage = DenseVecStorage<Self>;
 }
 
+#[derive(Debug)]
 pub enum Type {
     Kill,
     Eat
@@ -126,6 +145,6 @@ impl Default for Type {
     }
 }
 impl Component for Type {
-    type Storage = NullStorage<Self>;
+    type Storage = DenseVecStorage<Self>;
 }
 

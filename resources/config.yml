@@ -1,0 +1,8 @@
+dimensions: [600, 600]
+fullscreen: false
+max_dimensions: null
+min_dimensions: null
+multisampling: 0
+title: "Snake!"
+visibility: true
+vsync: true

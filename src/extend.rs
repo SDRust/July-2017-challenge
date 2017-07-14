@@ -5,9 +5,7 @@ use specs::{Entities, Fetch, Join, System, ReadStorage, WriteStorage};
 use components::*;
 
 #[derive(Default)]
-pub struct ExtendSystem {
-    entities: u64,
-}
+pub struct ExtendSystem;
 impl<'a> System<'a> for ExtendSystem {
     type SystemData = (
         // Resources
@@ -15,6 +13,7 @@ impl<'a> System<'a> for ExtendSystem {
         Fetch<'a, Tick>,
 
         // Components
+        WriteStorage<'a, Type>,
         WriteStorage<'a, Extension>,
         WriteStorage<'a, LocalTransform>,
         WriteStorage<'a, Transform>,
@@ -25,14 +24,31 @@ impl<'a> System<'a> for ExtendSystem {
         WriteStorage<'a, Snake>,
     );
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, tick, mut extensions, mut locals, mut globals, mut renderables, mut tiles, mut directions, mut parents, mut snakes) = data;
+        // Destructure the `Self::SystemData` into something more usable.
+        let (
+            entities, 
+            tick, 
+            mut types,
+            mut extensions, 
+            mut locals, 
+            mut globals, 
+            mut renderables, 
+            mut tiles, 
+            mut directions, 
+            mut parents, 
+            mut snakes
+        ) = data;
 
         if tick.ticked {
             let mut remove = Vec::new();
+            
+            // Iterate over any entity that is a snake and needs to be extended.
             for (entity, snake, extend, _, _, _) in (
                 &*entities, 
                 &mut snakes,
                 &mut extensions,
+
+                // Only check that the entity has the component, but without borrowing the storage.
                 &tiles.check(), 
                 &directions.check(),
                 &renderables.check(),
@@ -42,12 +58,15 @@ impl<'a> System<'a> for ExtendSystem {
                     None => entity,
                 };
 
+                // Create a "tail" entity.
                 let extend_entity = entities.create();
-                self.entities += 1;
                 let parent_tile = tiles.get(current).unwrap().clone();
                 let parent_direction = directions.get(current).unwrap().clone();
                 let parent_renderable = renderables.get(current).unwrap().clone();
 
+                // Somewhat unfortunate that we have to borrow these storages mutably to insert.
+                // Eventually use a lazy insertion so the storages don't block other systems.
+                types.insert(extend_entity, Type::Kill);
                 locals.insert(extend_entity, LocalTransform::default());
                 globals.insert(extend_entity, Transform::default());
                 renderables.insert(extend_entity, parent_renderable);
@@ -69,14 +88,9 @@ impl<'a> System<'a> for ExtendSystem {
                 snake.end = Some(extend_entity);
             }
 
+            // Clean up the extension component when it hits 0.
             for entity in remove {
                 extensions.remove(entity);
-            }
-
-            if tick.ticks % 100 == 0 {
-                for (entity, _) in (&*entities, &snakes.check()).join() {
-                    //extensions.insert(entity, Extension(500));
-                }
             }
         }
     }

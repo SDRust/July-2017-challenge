@@ -1,6 +1,6 @@
 
 use amethyst::ecs::resources::Time;
-use specs::{Entities, Join, Fetch, FetchMut, System};
+use specs::{Entities, Fetch, FetchMut, System};
 
 use components::Tick;
 
@@ -35,7 +35,7 @@ impl<'a> System<'a> for TickSystem {
         Fetch<'a, Time>,
         FetchMut<'a, Tick>,
     );
-    fn run(&mut self, (entities, time, mut tick): Self::SystemData) {
+    fn run(&mut self, (_, time, mut tick): Self::SystemData) {
         if time.delta_time.subsec_nanos() > TICK_RATE as u32 {
             self.accumulator = TICK_RATE;
         }
@@ -52,7 +52,9 @@ impl<'a> System<'a> for TickSystem {
         if self.accumulator >= TICK_RATE {
             self.accumulator = 0;
             tick.ticks += 1;
-            tick.ticked = true;
+            if !tick.game_over {
+                tick.ticked = true;
+            }
 
             if tick.ticks % (TICKS_PER_SECOND * 3) == 0 { // print out every 3 seconds
                 let samples = self.average_fps.iter().sum::<u64>() / FPS_SAMPLE as u64;

@@ -3,17 +3,13 @@ extern crate amethyst;
 extern crate specs;
 extern crate rand;
 
-use amethyst::{Application, Event, State, Trans, VirtualKeyCode, WindowEvent};
-use amethyst::asset_manager::AssetManager;
+use amethyst::Application;
 use amethyst::project::Config;
-use amethyst::ecs::{Component, Fetch, FetchMut, Join, System, VecStorage, World, WriteStorage};
-use amethyst::ecs::components::{Mesh, LocalTransform, Texture, Transform};
-use amethyst::ecs::resources::{Camera, InputHandler, Projection, Time};
+use amethyst::ecs::World;
 use amethyst::ecs::systems::TransformSystem;
 use amethyst::gfx_device::DisplayConfig;
-use amethyst::renderer::{Pipeline, VertexPosNormal};
 
-use specs::{DispatcherBuilder, NullStorage};
+use specs::{DispatcherBuilder};
 
 use components::*;
 use state::GameState;
@@ -52,7 +48,7 @@ fn main() {
     world.register::<Tile>();
 
     // Add systems that should be run in parallel.
-    let mut dispatcher = DispatcherBuilder::new()
+    let dispatcher = DispatcherBuilder::new()
         .add(ControllerSystem::default(), "controller", &[])
         .add(TickSystem::default(), "ticks", &["controller"])
         .add(TileSystem(0.0), "tiles", &[])

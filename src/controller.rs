@@ -12,7 +12,7 @@ impl<'a> System<'a> for ControllerSystem {
         // Resources
         Entities<'a>,
         Fetch<'a, InputHandler>,
-        Fetch<'a, Tick>,
+        FetchMut<'a, Tick>,
         FetchMut<'a, Grid>,
 
         // Components
@@ -29,7 +29,7 @@ impl<'a> System<'a> for ControllerSystem {
         let (
             entities, 
             input, 
-            tick, 
+            mut tick, 
             mut grid, 
             mut tiles, 
             mut snakes, 
@@ -41,7 +41,7 @@ impl<'a> System<'a> for ControllerSystem {
         ) = data;
 
         // Iterate over snakes.
-        for (direction, snake, tile, controls) in (&mut directions, &mut snakes, &mut tiles, &controls).join() {
+        for (direction, snake, _, controls) in (&mut directions, &mut snakes, &mut tiles, &controls).join() {
             // Figure out a valid direction for the snake.
             match (
                 input.button_down(controls.left),
@@ -98,22 +98,30 @@ impl<'a> System<'a> for ControllerSystem {
                 tile.y += direction.direction.1 as i32;
 
                 // Only if the current tile is a snake.
-                if let Some(snake) = snakes.get(entity) {
+                if snakes.get(entity).is_some() {
                     if let Some(other) = grid.get(tile.x as usize, tile.y as usize) {
                         // Check if the entity kills or is eatable.
                         if let Some(t) = types.get(other) {
                             match *t {
                                 // TODO: Stop the game.
                                 Type::Kill => {
+                                    tick.game_over = true;
                                     println!("Game over for {:?} killed by {:?}", entity, other);
                                 },
 
                                 // TODO: Implement extending the snake and score.
                                 Type::Eat => {
+                                    entities.delete(other);
+                                    extensions.insert(entity, Extension(5));
                                     println!("Eat {:?}", other);
                                 },
                             }
                         }
+                    }
+
+                    // End game if snake hits a wall.
+                    if tile.x < 0 || tile.x >= grid.len.0 as i32 || tile.y < 0 || tile.y >= grid.len.1 as i32 {
+                        tick.game_over = true;
                     }
                 }
                 

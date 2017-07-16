@@ -1,7 +1,7 @@
 
 use amethyst::ecs::components::LocalTransform;
 use amethyst::ecs::resources::{Camera, Projection, ScreenDimensions};
-use specs::{Entities, Fetch, FetchMut, Join, System, ReadStorage, WriteStorage};
+use specs::{Entities, Fetch, FetchMut, Join, System, WriteStorage};
 
 use components::{Tile, Tick};
 use ::TILE_SIZE;
@@ -20,7 +20,7 @@ impl<'a> System<'a> for TileSystem {
         WriteStorage<'a, LocalTransform>,
     );
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, dimensions, tick, camera, mut tiles, mut locals) = data;
+        let (_, dimensions, tick, camera, mut tiles, mut locals) = data;
 
         if tick.ticked {
             // Update camera aspect ratio

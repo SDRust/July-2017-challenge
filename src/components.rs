@@ -1,9 +1,5 @@
-
-use std::collections::HashMap;
-
-use specs::{Component, Entity, DenseVecStorage, NullStorage};
+use specs::{Component, Entity, DenseVecStorage};
 use amethyst::ecs::resources::Button;
-use rand;
 
 #[derive(Debug, Default)]
 pub struct Tick {
@@ -12,19 +8,21 @@ pub struct Tick {
 
     // Did a tick occur this frame.
     pub ticked: bool,
+
+    pub game_over: bool,
 }
 
 // Grid of snake parts.
 pub struct Grid {
     list: Vec<Option<Entity>>,
-    len: (usize, usize),
+    pub len: (usize, usize),
 }
 impl Grid {
     pub fn new(x: usize, y: usize) -> Self {
         let max = x + y * x;
         let mut list = Vec::with_capacity(max);
 
-        for i in 0..max {
+        for _ in 0..max {
             list.push(None);
         }
         

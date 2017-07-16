@@ -1,6 +1,6 @@
 
 use amethyst::ecs::components::{LocalTransform, Renderable, Transform};
-use specs::{Entities, Fetch, Join, System, ReadStorage, WriteStorage};
+use specs::{Entities, Fetch, Join, System, WriteStorage};
 
 use components::*;
 
@@ -53,7 +53,7 @@ impl<'a> System<'a> for ExtendSystem {
                 &directions.check(),
                 &renderables.check(),
             ).join() {
-                let mut current = match snake.end {
+                let current = match snake.end {
                     Some(end) => end,
                     None => entity,
                 };
